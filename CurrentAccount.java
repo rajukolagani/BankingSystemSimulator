@@ -13,7 +13,6 @@ public class CurrentAccount extends Account {
     @Override
     public synchronized void withdraw(double amount)
             throws InvalidAmountException, InsufficientBalanceException {
-        // Overdraft limit of 5000
         if (amount > getBalance() + 5000)
             throw new InsufficientBalanceException("Overdraft limit exceeded (max 5000).");
         super.withdraw(amount);

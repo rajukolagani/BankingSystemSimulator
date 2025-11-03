@@ -1,5 +1,3 @@
-// Demonstrates operations on an account.
-// Use to show deposits or withdrawals concurrently.
 public class TransactionTask implements Runnable {
     public enum Type { DEPOSIT, WITHDRAW }
     private final Bank bank;

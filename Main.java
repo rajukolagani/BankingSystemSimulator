@@ -41,8 +41,6 @@ public class Main {
         System.out.println("3. Exit");
         System.out.print("Enter your choice: ");
     }
-
-    // ✅ Create Account (with polymorphism)
     private static void createAccountFlow() {
         try {
             System.out.print("Enter Full Name: ");
@@ -74,8 +72,6 @@ public class Main {
             System.out.println(e.getMessage());
         }
     }
-
-    // ✅ Perform transactions or show account
     private static void performOperationsFlow() {
         System.out.print("Enter account number (or type 'list' to view/search): ");
         String input = scanner.nextLine().trim();
@@ -164,8 +160,6 @@ public class Main {
         System.out.println("Holder: " + a.getHolderName());
         System.out.println("Balance: " + a.getBalance());
     }
-
-    // ✅ Multithreading demo
     private static void runConcurrentDemo(Account a) {
         System.out.println("\n--- Starting Concurrent Transaction Demo ---");
         ExecutorService ex = Executors.newFixedThreadPool(4);
@@ -185,8 +179,6 @@ public class Main {
         }
         System.out.println("Demo finished. Final balance: " + a.getBalance());
     }
-
-    // ✅ Input helpers
     private static int readInt() {
         while (true) {
             try {

@@ -24,7 +24,7 @@ public class Bank {
         return acc;
     }
 
-    // Search accounts by holder name (using streams)
+    // Search accounts by holder name
     public List<Account> searchByName(String partial) {
         String lower = partial.toLowerCase();
         return accounts.values().stream()
@@ -46,7 +46,7 @@ public class Bank {
         to.deposit(amount);
     }
 
-    // Get all accounts (for listing)
+    // Get all accounts
     public Collection<Account> getAllAccounts() {
         return accounts.values();
     }
