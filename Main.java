@@ -11,6 +11,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("=== Banking System Simulator ===");
         boolean running = true;
+
         while (running) {
             try {
                 showMainMenu();
@@ -19,7 +20,7 @@ public class Main {
                     case 1 -> createAccountFlow();
                     case 2 -> performOperationsFlow();
                     case 3 -> {
-                        System.out.println("Exiting... Goodbye.");
+                        System.out.println("Exiting... Goodbye!");
                         running = false;
                     }
                     default -> throw new InvalidChoiceException("Invalid main menu choice.");
@@ -35,38 +36,64 @@ public class Main {
 
     private static void showMainMenu() {
         System.out.println("\nMain Menu:");
-        System.out.println("1. Create an account");
-        System.out.println("2. Perform operations on existing accounts");
+        System.out.println("1. Create an Account");
+        System.out.println("2. Perform Operations on Existing Accounts");
         System.out.println("3. Exit");
-        System.out.print("Choose an option: ");
+        System.out.print("Enter your choice: ");
     }
 
+    // ✅ Create Account (with polymorphism)
     private static void createAccountFlow() {
         try {
-            System.out.print("Enter full name: ");
-            String name = scanner.nextLine();
-            String accNum = bank.createAccount(name);
-            System.out.println("Account created. Account Number: " + accNum);
-        } catch (InvalidNameException e) {
-            System.out.println("Invalid name: " + e.getMessage());
+            System.out.print("Enter Full Name: ");
+            String name = scanner.nextLine().trim();
+
+            System.out.println("Select Account Type:");
+            System.out.println("1. Savings Account");
+            System.out.println("2. Current Account");
+            System.out.print("Choice: ");
+            int typeChoice = readInt();
+
+            String accNum = bank.generateAccountNumber();
+            Account account;
+
+            if (typeChoice == 1) {
+                account = new SavingsAccount(accNum, name, 0.0);
+            } else if (typeChoice == 2) {
+                account = new CurrentAccount(accNum, name, 0.0);
+            } else {
+                throw new InvalidChoiceException("Invalid account type selected.");
+            }
+
+            bank.addAccount(account);
+            System.out.println("\n✅ Account Created Successfully!");
+            System.out.println("Account Number: " + accNum);
+            System.out.println("Holder Name: " + name);
+            System.out.println("Account Type: " + (typeChoice == 1 ? "Savings" : "Current"));
+        } catch (InvalidChoiceException e) {
+            System.out.println(e.getMessage());
         }
     }
 
+    // ✅ Perform transactions or show account
     private static void performOperationsFlow() {
-        System.out.print("Enter account number to operate on (or type 'list' to search/list): ");
+        System.out.print("Enter account number (or type 'list' to view/search): ");
         String input = scanner.nextLine().trim();
+
         try {
             if (input.equalsIgnoreCase("list")) {
                 System.out.print("Enter partial name to search (blank for all): ");
-                String p = scanner.nextLine();
-                List<Account> results = bank.searchByName(p);
+                String query = scanner.nextLine();
+                List<Account> results = bank.searchByName(query);
+
                 if (results.isEmpty()) System.out.println("No accounts found.");
-                else results.forEach(a -> System.out.println(a.getAccountNumber() + " - " + a.getHolderName() + " - Balance: " + a.getBalance()));
+                else results.forEach(a -> System.out.println(a.getAccountNumber() + " | " + a.getHolderName() + " | Balance: " + a.getBalance()));
                 return;
             }
 
             Account account = bank.getAccount(input);
             boolean back = false;
+
             while (!back) {
                 showAccountMenu(account.getAccountNumber());
                 int choice = readInt();
@@ -75,11 +102,12 @@ public class Main {
                     case 2 -> withdrawFlow(account);
                     case 3 -> transferFlow(account);
                     case 4 -> showBalanceFlow(account);
-                    case 5 -> back = true;
-                    case 6 -> runConcurrentDemo(account);
-                    default -> System.out.println("Invalid choice.");
+                    case 5 -> runConcurrentDemo(account);
+                    case 6 -> back = true;
+                    default -> System.out.println("Invalid option. Try again.");
                 }
             }
+
         } catch (AccountNotFoundException e) {
             System.out.println(e.getMessage());
         }
@@ -90,9 +118,9 @@ public class Main {
         System.out.println("1. Deposit");
         System.out.println("2. Withdraw");
         System.out.println("3. Transfer");
-        System.out.println("4. Show balance");
-        System.out.println("5. Return to main menu");
-        System.out.println("6. Run concurrent transactions demo (multithreading)");
+        System.out.println("4. Show Balance");
+        System.out.println("5. Run Concurrent Demo (Multithreading)");
+        System.out.println("6. Return to Main Menu");
         System.out.print("Choice: ");
     }
 
@@ -111,16 +139,10 @@ public class Main {
         try {
             System.out.print("Enter withdrawal amount: ");
             double amt = readDouble();
-            try {
-                a.withdraw(amt);
-                System.out.println("Withdrawal successful. New balance: " + a.getBalance());
-            } catch (InsufficientBalanceException e) {
-                System.out.println("Withdrawal failed: " + e.getMessage());
-            } finally {
-                System.out.println("Balance after attempted withdrawal: " + a.getBalance());
-            }
-        } catch (InvalidAmountException e) {
-            System.out.println("Invalid amount: " + e.getMessage());
+            a.withdraw(amt);
+            System.out.println("Withdrawal successful. New balance: " + a.getBalance());
+        } catch (InvalidAmountException | InsufficientBalanceException e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
@@ -138,18 +160,21 @@ public class Main {
     }
 
     private static void showBalanceFlow(Account a) {
-        System.out.println("Account Number: " + a.getAccountNumber());
+        System.out.println("\nAccount Number: " + a.getAccountNumber());
         System.out.println("Holder: " + a.getHolderName());
         System.out.println("Balance: " + a.getBalance());
     }
+
+    // ✅ Multithreading demo
     private static void runConcurrentDemo(Account a) {
-        System.out.println("Starting concurrent demo on account " + a.getAccountNumber());
+        System.out.println("\n--- Starting Concurrent Transaction Demo ---");
         ExecutorService ex = Executors.newFixedThreadPool(4);
-        
+
         ex.submit(new TransactionTask(bank, a.getAccountNumber(), 500, TransactionTask.Type.DEPOSIT));
         ex.submit(new TransactionTask(bank, a.getAccountNumber(), 200, TransactionTask.Type.WITHDRAW));
         ex.submit(new TransactionTask(bank, a.getAccountNumber(), 300, TransactionTask.Type.DEPOSIT));
         ex.submit(new TransactionTask(bank, a.getAccountNumber(), 700, TransactionTask.Type.WITHDRAW));
+
         ex.shutdown();
         try {
             if (!ex.awaitTermination(5, TimeUnit.SECONDS)) {
@@ -158,15 +183,16 @@ public class Main {
         } catch (InterruptedException e) {
             ex.shutdownNow();
         }
-        System.out.println("Concurrent demo finished. Final balance: " + a.getBalance());
+        System.out.println("Demo finished. Final balance: " + a.getBalance());
     }
+
+    // ✅ Input helpers
     private static int readInt() {
         while (true) {
             try {
-                String s = scanner.nextLine();
-                return Integer.parseInt(s.trim());
+                return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
-                System.out.print("Invalid integer. Try again: ");
+                System.out.print("Invalid number. Enter again: ");
             }
         }
     }
@@ -174,10 +200,9 @@ public class Main {
     private static double readDouble() {
         while (true) {
             try {
-                String s = scanner.nextLine();
-                return Double.parseDouble(s.trim());
+                return Double.parseDouble(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
-                System.out.print("Invalid number. Try again: ");
+                System.out.print("Invalid number. Enter again: ");
             }
         }
     }
